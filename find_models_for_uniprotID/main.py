@@ -309,25 +309,28 @@ def get_pdbs_associated_with_uniprotid(uniprotList, outputDirectory):
         
 
 def download_and_prepare_alphafoldDB_model(uniprotID, downloadLocation):
-    outputFileName = uniprotID + ".pdb"
+    outputFileName = "AlphaFold_" + uniprotID + ".pdb"
     outputFilePath = os.path.join(downloadLocation, outputFileName)
-    requestURL = f"https://alphafold.ebi.ac.uk/files/AF-{uniprotID}-F1-model_v1.pdb"
-    query = requests.get(requestURL, allow_redirects=True)
+    try:
+        requestURL = f"https://alphafold.ebi.ac.uk/files/AF-{uniprotID}-F1-model_v1.pdb"
+        query = requests.get(requestURL, allow_redirects=True)
 
-    outputLines = []
-    downloadedLines = query.iter_lines()
-    for line in downloadedLines:
-        decodedLine = line.decode("utf-8")
-        if decodedLine[:5] != "MODEL":
-            outputLines.append(decodedLine)
+        outputLines = []
+        downloadedLines = query.iter_lines()
+        for line in downloadedLines:
+            decodedLine = line.decode("utf-8")
+            if decodedLine[:5] != "MODEL":
+                outputLines.append(decodedLine)
 
-    with open(outputFilePath, "w") as file:
-        file.writelines("%s\n" % l for l in outputLines)
+        with open(outputFilePath, "w") as file:
+            file.writelines("%s\n" % l for l in outputLines)
 
-    print(
-        f"Successfully downloaded model from AlphaFoldDB with UniProt ID: '{uniprotID}' to {outputFilePath}"
-    )
-    return outputFilePath
+        print(
+            f"\tSuccessfully downloaded model from AlphaFoldDB with UniProt ID: '{uniprotID}' to {outputFilePath}"
+        )
+    except Exception as e:
+        print(f"Error: {e}")
+        
 
 def download_RCSBPDB_file(PDBID, downloadLocation):
     outputFileName = PDBID + ".pdb"
@@ -360,6 +363,7 @@ def download_models_for_glycosite_view(csvoutput, outputFolderLocation):
             newFolder = os.path.join(glycositeViewFolder, f'{uniProtID}/{glycosite}')
             PrepareFolder(newFolder)
             download_RCSBPDB_file(PDBID, newFolder)
+            download_and_prepare_alphafoldDB_model(row["original_UniProtID"], newFolder)
             
 
             
