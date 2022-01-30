@@ -1,12 +1,8 @@
 import os
 import shutil
-import re
 import sys
 import csv
-import argparse
 import requests
-import warnings
-import json
 
 def PrepareFolder(path):
     if os.path.exists(path):
@@ -127,6 +123,10 @@ def query_uniprotID(uniprotID):
     }
         
     return output
+
+def query_PDBeKB(uniprotID):
+    pass
+
 
 def get_redirect_link(uniprotID):
     r = requests.get(f"https://www.uniprot.org/uniprot/{uniprotID}")
