@@ -2,7 +2,12 @@ import os
 import shutil
 import sys
 import csv
+from tabnanny import check
 import requests
+
+def CreateFolder(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
 
 def PrepareFolder(path):
     if os.path.exists(path):
@@ -124,8 +129,42 @@ def query_uniprotID(uniprotID):
         
     return output
 
-def query_PDBeKB(uniprotID):
-    pass
+def query_PDBeKB(uniprotID, glycosites):
+    sanitised_PDBentries = []
+    PDBeKB_URL = f"https://www.ebi.ac.uk/pdbe/graph-api/uniprot/unipdb/{uniprotID}"
+    PDBeKB_Response = requests.get(
+        PDBeKB_URL, headers={"Accept": "application/json"}
+    )
+    if not PDBeKB_Response.ok:
+        return {"status": "failed"}
+    PDBeKB_ResponseJSON = PDBeKB_Response.json()
+    sequence = PDBeKB_ResponseJSON[uniprotID]["sequence"]
+    experimentalData = PDBeKB_ResponseJSON[uniprotID]["data"]
+    experimentalData.sort(key=lambda e: e['additionalData']['resolution'], reverse=False)
+    for glycosite in glycosites:
+        PDBentries = []
+        for entry in experimentalData:
+            accessionID = entry["accession"]
+            bestChainID = entry["bestChainId"]
+            additionalData = entry["additionalData"]
+            resolution = additionalData["resolution"]
+            experiment = additionalData["experiment"]
+            residues = entry["residues"]
+            for residueRange in residues:
+                start = residueRange["startIndex"]
+                end = residueRange["endIndex"]
+                glycositePresent = True if start <= glycosite <= end else False
+                if glycositePresent == True:
+                    break
+            entryToAppend = {"PDBid": accessionID, "method": experiment, "resolution": resolution, "bestChain": bestChainID, "glycosite": glycosite, "glycositePresent": glycositePresent, "sequence": sequence}
+            PDBentries.append(entryToAppend)
+        sanitised_PDBentries.append({"status": "success", "PDB": PDBentries})
+        
+    
+    # print(sanitised_PDBentries)
+    return sanitised_PDBentries
+            
+        
 
 
 def get_redirect_link(uniprotID):
@@ -165,15 +204,10 @@ def get_pdbs_associated_with_uniprotid(uniprotList, outputDirectory):
         "PDB",
         "PDB_method",
         "resolution",
-        "glycosite_present_in_PDB",
-        "glycosite_present_in_PDB_ChainID",
+        "bestChain",
+        "glycosite_present",
+        "AlphaFold_confidence",
         "UniProt_sequence",
-        "PDB_ChainID_1",
-        "PDB_sequence_1", 
-        "PDB_ChainID_2",
-        "PDB_sequence_2",
-        "PDB_ChainID_3",
-        "PDB_sequence_3"
     ]
     PrepareFolderAndFile(outputDirectory, master_csv_filename)
     with open(
@@ -187,123 +221,121 @@ def get_pdbs_associated_with_uniprotid(uniprotList, outputDirectory):
             try:
                 uniprotQuery = query_uniprotID(currentUniProtID)
                 redirected_uniprotID = None
+                confidence = get_confidence_scores_from_alphafoldDB_model(currentUniProtID, currentGlycosites)
             except requests.HTTPError as exception:
                 redirected_uniprotID = get_redirect_link(currentUniProtID)
                 uniprotQuery = query_uniprotID(redirected_uniprotID)
+                confidence = get_confidence_scores_from_alphafoldDB_model(redirected_uniprotID, currentGlycosites)
                 redirectedUniProtIDs.append({"old_UniProtID": currentUniProtID, "old_UniProtID": redirected_uniprotID})
-        
-            associatedPDBs = uniprotQuery["PDBs"]
-            for glycosite in currentGlycosites:
-                numberOfAssociatedPDBs = len(associatedPDBs)
-                if numberOfAssociatedPDBs == 0:
+                
+            if(redirected_uniprotID is None):
+                PDBeKB_query = query_PDBeKB(currentUniProtID, currentGlycosites)
+            else:
+                PDBeKB_query = query_PDBeKB(redirected_uniprotID, currentGlycosites)
+            
+            for glycositeIndex, glycosite in enumerate(currentGlycosites):
+                glycositeConfidenceDict = next((e for e in confidence if e['glycosite'] == glycosite), None)
+                if glycositeConfidenceDict is not None:
+                    glycositeConfidence = glycositeConfidenceDict["confidence"]
+                else:
+                    glycositeConfidence = "-"
+                
+                try:
+                    currentGlycositePDBeKBQuery = PDBeKB_query[glycositeIndex]
+                except (IndexError, KeyError) as e:
                     currentRow = {
                         "original_UniProtID": currentUniProtID,
                         "redirected_UniProtID": "-" if redirected_uniprotID is None else redirected_uniprotID,
                         "glycosite_location": glycosite,
-                        "PDB": "-",
+                        "PDB": "-", 
                         "PDB_method": "-",
                         "resolution": "-",
-                        "glycosite_present_in_PDB": "-",
-                        "glycosite_present_in_PDB_ChainID": "-",
-                        "UniProt_sequence": uniprotQuery["sequence"],
-                        "PDB_ChainID_1": "-",
-                        "PDB_sequence_1": "-", 
-                        "PDB_ChainID_2": "-",
-                        "PDB_sequence_2": "-",
-                        "PDB_ChainID_3": "-",
-                        "PDB_sequence_3": "-"
+                        "bestChain": "-",
+                        "glycosite_present": "-",
+                        "AlphaFold_confidence": glycositeConfidence,
+                        "UniProt_sequence": "-",
                     }
                     primaryresultswriter.writerow(currentRow)
                     output.append(currentRow)
+                if(currentGlycositePDBeKBQuery["status"] == "success"):
+                    if(len(currentGlycositePDBeKBQuery["PDB"])):
+                        for PDBentry in currentGlycositePDBeKBQuery["PDB"]:
+                            currentRow = {
+                                "original_UniProtID": currentUniProtID,
+                                "redirected_UniProtID": "-" if redirected_uniprotID is None else redirected_uniprotID,
+                                "glycosite_location": glycosite,
+                                "PDB": PDBentry["PDBid"], 
+                                "PDB_method": PDBentry["method"],
+                                "resolution": PDBentry["resolution"],
+                                "bestChain": PDBentry["bestChain"],
+                                "glycosite_present": "Yes" if PDBentry["glycositePresent"] == True else "No",
+                                "AlphaFold_confidence": glycositeConfidence,
+                                "UniProt_sequence": PDBentry["sequence"],
+                            }
+                            primaryresultswriter.writerow(currentRow)
+                            output.append(currentRow)
+                    else:
+                        currentRow = {
+                            "original_UniProtID": currentUniProtID,
+                            "redirected_UniProtID": "-" if redirected_uniprotID is None else redirected_uniprotID,
+                            "glycosite_location": glycosite,
+                            "PDB": "-", 
+                            "PDB_method": "-",
+                            "resolution": "-",
+                            "bestChain": "-",
+                            "glycosite_present": "-",
+                            "AlphaFold_confidence": glycositeConfidence,
+                            "UniProt_sequence": "-",
+                        }
+                        primaryresultswriter.writerow(currentRow)
+                        output.append(currentRow)
                 else:
-                    for associatedPDB in associatedPDBs:
-                        numberOfChains = len(associatedPDB["chains"])
-                        if numberOfChains == 1:
-                            chains = associatedPDB["chains"]
-                            presence_list = check_if_glycosite_present_in_PDB(glycosite, chains, uniprotQuery["sequence"])
-                            currentRow = {
-                                "original_UniProtID": currentUniProtID,
-                                "redirected_UniProtID": "-" if redirected_uniprotID is None else redirected_uniprotID,
-                                "glycosite_location": glycosite,
-                                "PDB": associatedPDB["id"],
-                                "PDB_method": associatedPDB["method"],
-                                "resolution": associatedPDB["resolution"],
-                                "glycosite_present_in_PDB": presence_list[0]["glycosite_present"],
-                                "glycosite_present_in_PDB_ChainID": presence_list[0]["chainID"],
-                                "UniProt_sequence": uniprotQuery["sequence"],
-                                "PDB_ChainID_1": presence_list[0]["chainID"],
-                                "PDB_sequence_1": presence_list[0]["chainSequence"], 
-                                "PDB_ChainID_2": "-",
-                                "PDB_sequence_2": "-",
-                                "PDB_ChainID_3": "-",
-                                "PDB_sequence_3": "-"
-                            }
-                            primaryresultswriter.writerow(currentRow)
-                            output.append(currentRow)
-                        elif numberOfChains == 2:
-                            chains = associatedPDB["chains"]
-                            presence_list = check_if_glycosite_present_in_PDB(glycosite, chains, uniprotQuery["sequence"])
-                            glycosite_present_in_PDB = "No"
-                            glycosite_present_in_chains = "-"
-                            for index, item in enumerate(presence_list):
-                                if item["glycosite_present"] == "Yes":
-                                    glycosite_present_in_PDB = "Yes"
-                                    glycosite_present_in_chains = item["chainID"]
-                                    glycosite_present_in_chains += "/" if index < len(presence_list) else ""
-                            
-                            currentRow = {
-                                "original_UniProtID": currentUniProtID,
-                                "redirected_UniProtID": "-" if redirected_uniprotID is None else redirected_uniprotID,
-                                "glycosite_location": glycosite,
-                                "PDB": associatedPDB["id"],
-                                "PDB_method": associatedPDB["method"],
-                                "resolution": associatedPDB["resolution"],
-                                "glycosite_present_in_PDB": glycosite_present_in_PDB,
-                                "glycosite_present_in_PDB_ChainID": glycosite_present_in_chains,
-                                "UniProt_sequence": uniprotQuery["sequence"],
-                                "PDB_ChainID_1": presence_list[0]["chainID"],
-                                "PDB_sequence_1": presence_list[0]["chainSequence"], 
-                                "PDB_ChainID_2": presence_list[1]["chainID"],
-                                "PDB_sequence_2": presence_list[1]["chainSequence"],
-                                "PDB_ChainID_3": "-",
-                                "PDB_sequence_3": "-"
-                            }
-                            primaryresultswriter.writerow(currentRow)
-                            output.append(currentRow)
-                        elif numberOfChains == 3:
-                            chains = associatedPDB["chains"]
-                            presence_list = check_if_glycosite_present_in_PDB(glycosite, chains, uniprotQuery["sequence"])
-                            glycosite_present_in_PDB = "No"
-                            glycosite_present_in_chains = "-"
-                            for index, item in enumerate(presence_list):
-                                if item["glycosite_present"] == "Yes":
-                                    glycosite_present_in_PDB = "Yes"
-                                    glycosite_present_in_chains = item["chainID"]
-                                    glycosite_present_in_chains += "/" if index < len(presence_list) else ""
-                            
-                            currentRow = {
-                                "original_UniProtID": currentUniProtID,
-                                "redirected_UniProtID": "-" if redirected_uniprotID is None else redirected_uniprotID,
-                                "glycosite_location": glycosite,
-                                "PDB": associatedPDB["id"],
-                                "PDB_method": associatedPDB["method"],
-                                "resolution": associatedPDB["resolution"],
-                                "glycosite_present_in_PDB": glycosite_present_in_PDB,
-                                "glycosite_present_in_PDB_ChainID": glycosite_present_in_chains,
-                                "UniProt_sequence": uniprotQuery["sequence"],
-                                "PDB_ChainID_1": presence_list[0]["chainID"],
-                                "PDB_sequence_1": presence_list[0]["chainSequence"], 
-                                "PDB_ChainID_2": presence_list[1]["chainID"],
-                                "PDB_sequence_2": presence_list[1]["chainSequence"],
-                                "PDB_ChainID_3": presence_list[2]["chainID"],
-                                "PDB_sequence_3": presence_list[2]["chainSequence"]
-                            }
-                            primaryresultswriter.writerow(currentRow)
-                            output.append(currentRow)
-                        else:
-                            raise Exception(f"There are more chains than anticipated, expecting 3, got {numberOfChains}")
+                    currentRow = {
+                        "original_UniProtID": currentUniProtID,
+                        "redirected_UniProtID": "-" if redirected_uniprotID is None else redirected_uniprotID,
+                        "glycosite_location": glycosite,
+                        "PDB": "-", 
+                        "PDB_method": "-",
+                        "resolution": "-",
+                        "bestChain": "-",
+                        "glycosite_present": "-",
+                        "AlphaFold_confidence": glycositeConfidence,
+                        "UniProt_sequence": "-",
+                    }
+                    primaryresultswriter.writerow(currentRow)
+                    output.append(currentRow)
+                
     return output
             
+
+def get_confidence_scores_from_alphafoldDB_model(uniprotID, glycosites):
+    output = []
+    savedLines = []
+    try:
+        requestURL = f"https://alphafold.ebi.ac.uk/files/AF-{uniprotID}-F1-model_v1.pdb"
+        query = requests.get(requestURL, allow_redirects=True)
+
+        outputLines = []
+        downloadedLines = query.iter_lines()
+        for line in downloadedLines:
+            savedLines.append(line)
+    except Exception as e:
+        print(f"Error: {e}")
+    
+    
+    for glycosite in glycosites:
+        for line in savedLines:
+            decodedLine = line.decode("utf-8")
+            if decodedLine[:4] == "ATOM":
+                residueNumber = int(decodedLine[22:26])
+                if residueNumber == glycosite:
+                    confidenceNumber = float(decodedLine[61:66])
+                    output.append({"glycosite": glycosite, "confidence": confidenceNumber})
+                    break
+    
+    return output
+            
+
 
 
         
@@ -355,13 +387,13 @@ def download_models_for_glycosite_view(csvoutput, outputFolderLocation):
     glycositeViewFolder = os.path.join(outputFolderLocation, "glycositeViewAndModels")
     for index, row in enumerate(csvoutput):
         print(f'Looking to download for {index}/{len(csvoutput)} - {row["original_UniProtID"]}')
-        if row["glycosite_present_in_PDB"] == "Yes":
+        if row["glycosite_present"] == "Yes":
             print(f'\tActually downloading PDB for {index}/{len(csvoutput)} - {row["original_UniProtID"]}')
             uniProtID = row["original_UniProtID"] if row["redirected_UniProtID"] == "-" else f'{row["original_UniProtID"]}__{row["redirected_UniProtID"]}'
             glycosite = row["glycosite_location"]
             PDBID = row["PDB"]
             newFolder = os.path.join(glycositeViewFolder, f'{uniProtID}/{glycosite}')
-            PrepareFolder(newFolder)
+            CreateFolder(newFolder)
             download_RCSBPDB_file(PDBID, newFolder)
             download_and_prepare_alphafoldDB_model(row["original_UniProtID"], newFolder)
             
@@ -379,8 +411,7 @@ if __name__ == "__main__":
     inputPathFileLocation = os.path.join(projectDir, "input/uniprotIDs.csv")
     outputFolderLocation = os.path.join(projectDir, "output")
     PrepareFolder(outputFolderLocation)
-    uniprotList = import_uniprotID_list(inputPathFileLocation)
-    # print(uniprotList)
+    uniprotList = import_uniprotID_list(inputPathFileLocation)    
     outputted = get_pdbs_associated_with_uniprotid(uniprotList, outputFolderLocation)
     download_models_for_glycosite_view(outputted, outputFolderLocation)
     print("Script has finished running!")
