@@ -242,35 +242,35 @@ def get_pdbs_associated_with_uniprotid(uniprotList, outputDirectory):
                 
                 try:
                     currentGlycositePDBeKBQuery = PDBeKB_query[glycositeIndex]
-                except (IndexError, KeyError) as e:
-                    currentRow = {
-                        "original_UniProtID": currentUniProtID,
-                        "redirected_UniProtID": "-" if redirected_uniprotID is None else redirected_uniprotID,
-                        "glycosite_location": glycosite,
-                        "PDB": "-", 
-                        "PDB_method": "-",
-                        "resolution": "-",
-                        "bestChain": "-",
-                        "glycosite_present": "-",
-                        "AlphaFold_confidence": glycositeConfidence,
-                        "UniProt_sequence": "-",
-                    }
-                    primaryresultswriter.writerow(currentRow)
-                    output.append(currentRow)
-                if(currentGlycositePDBeKBQuery["status"] == "success"):
-                    if(len(currentGlycositePDBeKBQuery["PDB"])):
-                        for PDBentry in currentGlycositePDBeKBQuery["PDB"]:
+                    if(currentGlycositePDBeKBQuery["status"] == "success"):
+                        if(len(currentGlycositePDBeKBQuery["PDB"])):
+                            for PDBentry in currentGlycositePDBeKBQuery["PDB"]:
+                                currentRow = {
+                                    "original_UniProtID": currentUniProtID,
+                                    "redirected_UniProtID": "-" if redirected_uniprotID is None else redirected_uniprotID,
+                                    "glycosite_location": glycosite,
+                                    "PDB": PDBentry["PDBid"], 
+                                    "PDB_method": PDBentry["method"],
+                                    "resolution": PDBentry["resolution"],
+                                    "bestChain": PDBentry["bestChain"],
+                                    "glycosite_present": "Yes" if PDBentry["glycositePresent"] == True else "No",
+                                    "AlphaFold_confidence": glycositeConfidence,
+                                    "UniProt_sequence": PDBentry["sequence"],
+                                }
+                                primaryresultswriter.writerow(currentRow)
+                                output.append(currentRow)
+                        else:
                             currentRow = {
                                 "original_UniProtID": currentUniProtID,
                                 "redirected_UniProtID": "-" if redirected_uniprotID is None else redirected_uniprotID,
                                 "glycosite_location": glycosite,
-                                "PDB": PDBentry["PDBid"], 
-                                "PDB_method": PDBentry["method"],
-                                "resolution": PDBentry["resolution"],
-                                "bestChain": PDBentry["bestChain"],
-                                "glycosite_present": "Yes" if PDBentry["glycositePresent"] == True else "No",
+                                "PDB": "-", 
+                                "PDB_method": "-",
+                                "resolution": "-",
+                                "bestChain": "-",
+                                "glycosite_present": "-",
                                 "AlphaFold_confidence": glycositeConfidence,
-                                "UniProt_sequence": PDBentry["sequence"],
+                                "UniProt_sequence": "-",
                             }
                             primaryresultswriter.writerow(currentRow)
                             output.append(currentRow)
@@ -289,7 +289,7 @@ def get_pdbs_associated_with_uniprotid(uniprotList, outputDirectory):
                         }
                         primaryresultswriter.writerow(currentRow)
                         output.append(currentRow)
-                else:
+                except (IndexError, KeyError) as e:
                     currentRow = {
                         "original_UniProtID": currentUniProtID,
                         "redirected_UniProtID": "-" if redirected_uniprotID is None else redirected_uniprotID,
