@@ -315,29 +315,31 @@ def check_glycan_status_in_PDB_model(PDBentry, glycosite, outputDirectory):
                 )
                 glycosylation = pvtcore.GlycosylationComposition_memsafe(PDBIDFullPath)
                 glycanSummary = glycosylation.get_summary_of_detected_glycans()
-                relevant_glycan = next(
-                    (
-                        item
-                        for item in glycanSummary
-                        if item["ProteinResidueID"] == relevant_model_residue["index"]
-                        and item["ProteinChainID"] == best_model_sequence
-                        and item["ProteinResidueSeqnum"]
-                        == relevant_model_residue["residueSeqnum"]
-                        and item["ProteinResidueType"]
-                        == relevant_model_residue["residueType"]
-                    ),
-                    None,
-                )
-                if relevant_glycan is not None:
-                    glycanWURCS = relevant_glycan["WURCS"]
-                    glycanLength = glycanWURCS[12]
-                    rootInfo = f'{relevant_glycan["RootInfo"]["ProteinResidueType"]}-{relevant_glycan["RootInfo"]["ProteinResidueSeqnum"]}'
-                    output = {
-                        "glycanLength": glycanLength,
-                        "WURCS": glycanWURCS,
-                        "rootInfo": rootInfo,
-                    }
-                    return output
+                if len(glycanSummary):
+                    relevant_glycan = next(
+                        (
+                            item
+                            for item in glycanSummary
+                            if item["RootInfo"]["ProteinChainID"] == best_model_sequence
+                            and item["RootInfo"]["ProteinResidueSeqnum"]
+                            == relevant_model_residue["residueSeqnum"]
+                            and item["RootInfo"]["ProteinResidueType"]
+                            == relevant_model_residue["residueType"]
+                        ),
+                        None,
+                    )
+                    if relevant_glycan is not None:
+                        glycanWURCS = relevant_glycan["WURCS"]
+                        glycanLength = glycanWURCS[12]
+                        rootInfo = f'{relevant_glycan["RootInfo"]["ProteinResidueType"]}-{relevant_glycan["RootInfo"]["ProteinResidueSeqnum"]}'
+                        output = {
+                            "glycanLength": glycanLength,
+                            "WURCS": glycanWURCS,
+                            "rootInfo": rootInfo,
+                        }
+                        return output
+                    else:
+                        return None
                 else:
                     return None
             else:
@@ -348,7 +350,9 @@ def check_glycan_status_in_PDB_model(PDBentry, glycosite, outputDirectory):
         return None
 
 
-def get_pdbs_associated_with_uniprotid(uniprotList, outputDirectory):
+def get_pdbs_associated_with_uniprotid(
+    uniprotList, outputDirectory, PDBs_containing_glycans
+):
     output = []
     redirectedUniProtIDs = []
     master_csv_filename = "processed_uniprotIDs.csv"
@@ -358,6 +362,7 @@ def get_pdbs_associated_with_uniprotid(uniprotList, outputDirectory):
         "redirected_UniProtID",
         "glycosite_location",
         "PDB",
+        "PDB_contains_glycans",
         "PDB_method",
         "resolution",
         "bestChain",
@@ -428,6 +433,12 @@ def get_pdbs_associated_with_uniprotid(uniprotList, outputDirectory):
                                         else redirected_uniprotID,
                                         "glycosite_location": glycosite,
                                         "PDB": PDBentry["PDBid"],
+                                        "PDB_contains_glycans": "No"
+                                        if not any(
+                                            dict.get("PDBID", "No") == PDBentry["PDBid"]
+                                            for dict in PDBs_containing_glycans
+                                        )
+                                        else "Yes",
                                         "PDB_method": PDBentry["method"],
                                         "resolution": PDBentry["resolution"],
                                         "bestChain": PDBentry["bestChain"],
@@ -452,6 +463,12 @@ def get_pdbs_associated_with_uniprotid(uniprotList, outputDirectory):
                                         else redirected_uniprotID,
                                         "glycosite_location": glycosite,
                                         "PDB": PDBentry["PDBid"],
+                                        "PDB_contains_glycans": "No"
+                                        if not any(
+                                            dict.get("PDBID", "No") == PDBentry["PDBid"]
+                                            for dict in PDBs_containing_glycans
+                                        )
+                                        else "Yes",
                                         "PDB_method": PDBentry["method"],
                                         "resolution": PDBentry["resolution"],
                                         "bestChain": PDBentry["bestChain"],
@@ -474,6 +491,7 @@ def get_pdbs_associated_with_uniprotid(uniprotList, outputDirectory):
                                 else redirected_uniprotID,
                                 "glycosite_location": glycosite,
                                 "PDB": "-",
+                                "PDB_contains_glycans": "-",
                                 "PDB_method": "-",
                                 "resolution": "-",
                                 "bestChain": "-",
@@ -494,6 +512,7 @@ def get_pdbs_associated_with_uniprotid(uniprotList, outputDirectory):
                             else redirected_uniprotID,
                             "glycosite_location": glycosite,
                             "PDB": "-",
+                            "PDB_contains_glycans": "-",
                             "PDB_method": "-",
                             "resolution": "-",
                             "bestChain": "-",
@@ -514,6 +533,7 @@ def get_pdbs_associated_with_uniprotid(uniprotList, outputDirectory):
                         else redirected_uniprotID,
                         "glycosite_location": glycosite,
                         "PDB": "-",
+                        "PDB_contains_glycans": "-",
                         "PDB_method": "-",
                         "resolution": "-",
                         "bestChain": "-",
@@ -637,16 +657,66 @@ def download_models_for_glycosite_view(csvoutput, outputFolderLocation):
             download_and_prepare_alphafoldDB_model(row["original_UniProtID"], newFolder)
 
 
+def import_generic_csv_file(path):
+    print(path)
+    output = []
+    with open(os.path.join(path)) as previous_output:
+        imported_dict = csv.DictReader(previous_output)
+        for row in imported_dict:
+            output.append(row)
+
+    return output
+
+
+def get_list_of_PDB_containing_glycans(uniprotOutput, privateerOutput):
+    output = []
+
+    for row_uniprot in uniprotOutput:
+        uniprotID = row_uniprot["original_UniProtID"]
+        glycosite_present = row_uniprot["glycosite_present"]
+        PDBID = row_uniprot["PDB"]
+        if glycosite_present == "Yes":
+            matching_entry = next(
+                (item for item in privateerOutput if item["pdbID"] == PDBID),
+                None,
+            )
+            if matching_entry is not None:
+                already_appended = next(
+                    (item for item in output if item["PDBID"] == PDBID),
+                    None,
+                )
+                if already_appended is None:
+                    output.append(
+                        {"uniprotID": uniprotID, "PDBID": matching_entry["pdbID"]}
+                    )
+
+    return output
+
+
 if __name__ == "__main__":
     fileLocation = os.path.abspath(__file__)
     nDirectoriesToGoBack = 1
     projectDir = os.path.normpath(
         os.path.join(*([fileLocation] + [".."] * nDirectoriesToGoBack))
     )
-    inputPathFileLocation = os.path.join(projectDir, "input/uniprotIDs.csv")
+    inputPathFileLocationAlpha = os.path.join(projectDir, "input/uniprotIDs.csv")
+    inputPathFileLocationBravo = os.path.join(
+        projectDir, "input/previously_processed_uniprotIDs.csv"
+    )
+    inputPathFileLocationCharlie = os.path.join(
+        projectDir, "input/processed_pdbmirror.csv"
+    )
     outputFolderLocation = os.path.join(projectDir, "output")
     PrepareFolder(outputFolderLocation)
-    uniprotList = import_uniprotID_list(inputPathFileLocation)
-    outputted = get_pdbs_associated_with_uniprotid(uniprotList, outputFolderLocation)
+    previousUniProtOutput = import_generic_csv_file(inputPathFileLocationBravo)
+    privateerCurationOutput = import_generic_csv_file(inputPathFileLocationCharlie)
+    PDBs_containing_glycans = get_list_of_PDB_containing_glycans(
+        previousUniProtOutput, privateerCurationOutput
+    )
+    uniprotList = import_uniprotID_list(inputPathFileLocationAlpha)
+    outputted = get_pdbs_associated_with_uniprotid(
+        uniprotList, outputFolderLocation, PDBs_containing_glycans
+    )
     download_models_for_glycosite_view(outputted, outputFolderLocation)
+
     print("Script has finished running!")
