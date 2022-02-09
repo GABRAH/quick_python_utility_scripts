@@ -1,4 +1,3 @@
-from base64 import decode
 import os
 import shutil
 import sys
