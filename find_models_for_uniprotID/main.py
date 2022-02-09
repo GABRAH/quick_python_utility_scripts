@@ -1,3 +1,4 @@
+from base64 import decode
 import os
 import shutil
 import sys
@@ -276,63 +277,70 @@ def check_glycan_status_in_PDB_model(PDBentry, glycosite, outputDirectory):
         CreateFolder(tmpOutputDirectory)
         download_RCSBPDB_file(PDBID, tmpOutputDirectory)
 
-    model_sequences = get_sequences_in_receiving_model(PDBIDFullPath)
-    best_model_sequence = (
-        PDBentry["bestChain"][0]
-        if len(PDBentry["bestChain"]) > 1
-        else PDBentry["bestChain"]
-    )
-    relevant_model_sequence = next(
-        (item for item in model_sequences if item["ChainID"] == best_model_sequence),
-        None,
-    )
-    if relevant_model_sequence is not None:
-        chain_residues = relevant_model_sequence["Residues"]
-        uniprot_sequence = Seq(PDBentry["sequence"])
-        pdb_sequence = Seq(relevant_model_sequence["Sequence"])
-        alignments = pairwise2.align.localxx(pdb_sequence, uniprot_sequence)
-        actual_alignment = alignments[0]
-        zero_based_glycosite_index = glycosite - 1
-        if (
-            actual_alignment[0][zero_based_glycosite_index]
-            == actual_alignment[1][zero_based_glycosite_index]
-        ):
-            recovered_sequence = []
-            for i in range(glycosite):
-                char = actual_alignment[0][i]
-                if char.isalpha():
-                    recovered_sequence.append(char)
+    if os.path.exists(PDBIDFullPath):
+        model_sequences = get_sequences_in_receiving_model(PDBIDFullPath)
+        best_model_sequence = (
+            PDBentry["bestChain"][0]
+            if len(PDBentry["bestChain"]) > 1
+            else PDBentry["bestChain"]
+        )
+        relevant_model_sequence = next(
+            (
+                item
+                for item in model_sequences
+                if item["ChainID"] == best_model_sequence
+            ),
+            None,
+        )
+        if relevant_model_sequence is not None:
+            chain_residues = relevant_model_sequence["Residues"]
+            uniprot_sequence = Seq(PDBentry["sequence"])
+            pdb_sequence = Seq(relevant_model_sequence["Sequence"])
+            alignments = pairwise2.align.localxx(pdb_sequence, uniprot_sequence)
+            actual_alignment = alignments[0]
+            zero_based_glycosite_index = glycosite - 1
+            if (
+                actual_alignment[0][zero_based_glycosite_index]
+                == actual_alignment[1][zero_based_glycosite_index]
+            ):
+                recovered_sequence = []
+                for i in range(glycosite):
+                    char = actual_alignment[0][i]
+                    if char.isalpha():
+                        recovered_sequence.append(char)
 
-            MiniMolIndex = len(recovered_sequence) - 1
-            relevant_model_residue = next(
-                (item for item in chain_residues if item["index"] == MiniMolIndex),
-                None,
-            )
-            glycosylation = pvtcore.GlycosylationComposition_memsafe(PDBIDFullPath)
-            glycanSummary = glycosylation.get_summary_of_detected_glycans()
-            relevant_glycan = next(
-                (
-                    item
-                    for item in glycanSummary
-                    if item["ProteinResidueID"] == relevant_model_residue["index"]
-                    and item["ProteinChainID"] == best_model_sequence
-                    and item["ProteinResidueSeqnum"]
-                    == relevant_model_residue["residueSeqnum"]
-                    and item["ProteinResidueType"]
-                    == relevant_model_residue["residueType"]
-                ),
-                None,
-            )
-            if relevant_glycan is not None:
-                glycanWURCS = relevant_glycan["WURCS"]
-                glycanLength = glycanWURCS[12]
-                rootInfo = f'{relevant_glycan["RootInfo"]["ProteinResidueType"]}-{relevant_glycan["RootInfo"]["ProteinResidueSeqnum"]}'
-                output = {
-                    "glycanLength": glycanLength,
-                    "WURCS": glycanWURCS,
-                    "rootInfo": rootInfo,
-                }
-                return output
+                MiniMolIndex = len(recovered_sequence) - 1
+                relevant_model_residue = next(
+                    (item for item in chain_residues if item["index"] == MiniMolIndex),
+                    None,
+                )
+                glycosylation = pvtcore.GlycosylationComposition_memsafe(PDBIDFullPath)
+                glycanSummary = glycosylation.get_summary_of_detected_glycans()
+                relevant_glycan = next(
+                    (
+                        item
+                        for item in glycanSummary
+                        if item["ProteinResidueID"] == relevant_model_residue["index"]
+                        and item["ProteinChainID"] == best_model_sequence
+                        and item["ProteinResidueSeqnum"]
+                        == relevant_model_residue["residueSeqnum"]
+                        and item["ProteinResidueType"]
+                        == relevant_model_residue["residueType"]
+                    ),
+                    None,
+                )
+                if relevant_glycan is not None:
+                    glycanWURCS = relevant_glycan["WURCS"]
+                    glycanLength = glycanWURCS[12]
+                    rootInfo = f'{relevant_glycan["RootInfo"]["ProteinResidueType"]}-{relevant_glycan["RootInfo"]["ProteinResidueSeqnum"]}'
+                    output = {
+                        "glycanLength": glycanLength,
+                        "WURCS": glycanWURCS,
+                        "rootInfo": rootInfo,
+                    }
+                    return output
+                else:
+                    return None
             else:
                 return None
         else:
@@ -584,16 +592,27 @@ def download_RCSBPDB_file(PDBID, downloadLocation):
 
     outputLines = []
     downloadedLines = query.iter_lines()
+    failedDownload = "<p>The requested URL was not found on this server.</p>"
+    failure = False
     for line in downloadedLines:
         decodedLine = line.decode("utf-8")
-        outputLines.append(decodedLine)
+        if failedDownload in decodedLine:
+            failure = True
+            break
+        else:
+            outputLines.append(decodedLine)
 
-    with open(outputFilePath, "w") as file:
-        file.writelines("%s\n" % l for l in outputLines)
-
-    print(
-        f"\tSuccessfully downloaded model from RCSB PDB with PDB ID: '{PDBID}' to {outputFilePath}"
-    )
+    if failure == False:
+        with open(outputFilePath, "w") as file:
+            file.writelines("%s\n" % l for l in outputLines)
+        print(
+            f"\tSuccessfully downloaded model from RCSB PDB with PDB ID: '{PDBID}' to {outputFilePath}"
+        )
+    else:
+        print(
+            f"\tFailed to download model from RCSB PDB with PDB ID: '{PDBID}' to {outputFilePath}"
+        )
+    return True
 
 
 def download_models_for_glycosite_view(csvoutput, outputFolderLocation):
