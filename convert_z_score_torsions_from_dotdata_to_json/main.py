@@ -226,7 +226,8 @@ def main():
     CreateFolder(outputDirectoryPath)
 
     with open(
-            os.path.join(outputDirectoryPath, "torsion_z_score_database.json"),
+            os.path.join(outputDirectoryPath,
+                         "privateer_torsions_z_score_database.json"),
             "w",
             encoding="utf-8",
     ) as export_json_file:
