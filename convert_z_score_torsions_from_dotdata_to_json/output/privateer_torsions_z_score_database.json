@@ -9,8 +9,8 @@
                "sugar": "MAN",
                "Linkage": [
                   {
-                     "donor_end": 2,
-                     "acceptor_end": 1,
+                     "donor_end": "2",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 1.0,
@@ -35,8 +35,8 @@
                      }
                   },
                   {
-                     "donor_end": 6,
-                     "acceptor_end": 1,
+                     "donor_end": "6",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 2.4257142857142857,
@@ -3036,8 +3036,8 @@
                      }
                   },
                   {
-                     "donor_end": 3,
-                     "acceptor_end": 1,
+                     "donor_end": "3",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 2.637065637065637,
@@ -6203,8 +6203,8 @@
                "sugar": "BMA",
                "Linkage": [
                   {
-                     "donor_end": 3,
-                     "acceptor_end": 1,
+                     "donor_end": "3",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 1.0,
@@ -6264,8 +6264,8 @@
                      }
                   },
                   {
-                     "donor_end": 6,
-                     "acceptor_end": 1,
+                     "donor_end": "6",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 1.0,
@@ -6323,8 +6323,8 @@
                "sugar": "NAG",
                "Linkage": [
                   {
-                     "donor_end": 2,
-                     "acceptor_end": 1,
+                     "donor_end": "2",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 1.0,
@@ -6356,8 +6356,8 @@
                      }
                   },
                   {
-                     "donor_end": 4,
-                     "acceptor_end": 1,
+                     "donor_end": "4",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 1.0,
@@ -6387,8 +6387,8 @@
                "sugar": "XYP",
                "Linkage": [
                   {
-                     "donor_end": 2,
-                     "acceptor_end": 1,
+                     "donor_end": "2",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 1.0,
@@ -6479,8 +6479,8 @@
                "sugar": "GLA",
                "Linkage": [
                   {
-                     "donor_end": 6,
-                     "acceptor_end": 1,
+                     "donor_end": "6",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 1.0,
@@ -6510,8 +6510,8 @@
                "sugar": "GAL",
                "Linkage": [
                   {
-                     "donor_end": 4,
-                     "acceptor_end": 1,
+                     "donor_end": "4",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 1.0,
@@ -6562,8 +6562,8 @@
                "sugar": "BGC",
                "Linkage": [
                   {
-                     "donor_end": 4,
-                     "acceptor_end": 1,
+                     "donor_end": "4",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 1.0,
@@ -6658,8 +6658,8 @@
                      }
                   },
                   {
-                     "donor_end": 3,
-                     "acceptor_end": 1,
+                     "donor_end": "3",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 1.0,
@@ -6703,8 +6703,8 @@
                "sugar": "XYS",
                "Linkage": [
                   {
-                     "donor_end": 6,
-                     "acceptor_end": 1,
+                     "donor_end": "6",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 1.0,
@@ -6746,8 +6746,8 @@
                "sugar": "XYP",
                "Linkage": [
                   {
-                     "donor_end": 4,
-                     "acceptor_end": 1,
+                     "donor_end": "4",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 1.0,
@@ -6789,8 +6789,8 @@
                "sugar": "GLA",
                "Linkage": [
                   {
-                     "donor_end": 3,
-                     "acceptor_end": 1,
+                     "donor_end": "3",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 1.0,
@@ -6825,8 +6825,8 @@
                "sugar": "BMA",
                "Linkage": [
                   {
-                     "donor_end": 4,
-                     "acceptor_end": 1,
+                     "donor_end": "4",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 1.0,
@@ -6861,8 +6861,8 @@
                "sugar": "BGC",
                "Linkage": [
                   {
-                     "donor_end": 3,
-                     "acceptor_end": 1,
+                     "donor_end": "3",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 1.0,
@@ -6953,8 +6953,8 @@
                "sugar": "FUL",
                "Linkage": [
                   {
-                     "donor_end": 6,
-                     "acceptor_end": 1,
+                     "donor_end": "6",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 1.0,
@@ -7091,8 +7091,8 @@
                      }
                   },
                   {
-                     "donor_end": 3,
-                     "acceptor_end": 1,
+                     "donor_end": "3",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 1.0,
@@ -7136,8 +7136,8 @@
                "sugar": "FUC",
                "Linkage": [
                   {
-                     "donor_end": 6,
-                     "acceptor_end": 1,
+                     "donor_end": "6",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 1.3076923076923077,
@@ -9598,8 +9598,8 @@
                      }
                   },
                   {
-                     "donor_end": 3,
-                     "acceptor_end": 1,
+                     "donor_end": "3",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 2.222707423580786,
@@ -10609,8 +10609,8 @@
                "sugar": "GAL",
                "Linkage": [
                   {
-                     "donor_end": 4,
-                     "acceptor_end": 1,
+                     "donor_end": "4",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 1.2962962962962963,
@@ -11123,8 +11123,8 @@
                "sugar": "BMA",
                "Linkage": [
                   {
-                     "donor_end": 4,
-                     "acceptor_end": 1,
+                     "donor_end": "4",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 4.258589511754069,
@@ -15704,8 +15704,8 @@
                "sugar": "NDG",
                "Linkage": [
                   {
-                     "donor_end": 4,
-                     "acceptor_end": 1,
+                     "donor_end": "4",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 1.0,
@@ -15756,8 +15756,8 @@
                "sugar": "NAG",
                "Linkage": [
                   {
-                     "donor_end": 3,
-                     "acceptor_end": 1,
+                     "donor_end": "3",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 1.0,
@@ -15782,8 +15782,8 @@
                      }
                   },
                   {
-                     "donor_end": 4,
-                     "acceptor_end": 1,
+                     "donor_end": "4",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 9.86479390916251,
@@ -22050,8 +22050,8 @@
                "sugar": "MAN",
                "Linkage": [
                   {
-                     "donor_end": 4,
-                     "acceptor_end": 1,
+                     "donor_end": "4",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 1.0,
@@ -22093,8 +22093,8 @@
                "sugar": "NAG",
                "Linkage": [
                   {
-                     "donor_end": 2,
-                     "acceptor_end": 1,
+                     "donor_end": "2",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 2.3305439330543933,
@@ -23139,8 +23139,8 @@
                "sugar": "GLC",
                "Linkage": [
                   {
-                     "donor_end": 3,
-                     "acceptor_end": 1,
+                     "donor_end": "3",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 1.2857142857142858,
@@ -23198,8 +23198,8 @@
                "sugar": "MAN",
                "Linkage": [
                   {
-                     "donor_end": 3,
-                     "acceptor_end": 1,
+                     "donor_end": "3",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 2.1,
@@ -24603,8 +24603,8 @@
                      }
                   },
                   {
-                     "donor_end": 6,
-                     "acceptor_end": 1,
+                     "donor_end": "6",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 1.6090909090909091,
@@ -25805,8 +25805,8 @@
                      }
                   },
                   {
-                     "donor_end": 2,
-                     "acceptor_end": 1,
+                     "donor_end": "2",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 2.0948616600790513,
@@ -28249,8 +28249,8 @@
                "sugar": "GAL",
                "Linkage": [
                   {
-                     "donor_end": 4,
-                     "acceptor_end": 1,
+                     "donor_end": "4",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 1.0,
@@ -28275,8 +28275,8 @@
                      }
                   },
                   {
-                     "donor_end": 3,
-                     "acceptor_end": 1,
+                     "donor_end": "3",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 1.3333333333333333,
@@ -28327,8 +28327,8 @@
                "sugar": "SIA",
                "Linkage": [
                   {
-                     "donor_end": 3,
-                     "acceptor_end": 1,
+                     "donor_end": "3",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 1.0769230769230769,
@@ -28514,8 +28514,8 @@
                      }
                   },
                   {
-                     "donor_end": 6,
-                     "acceptor_end": 1,
+                     "donor_end": "6",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 1.7692307692307692,
@@ -28685,8 +28685,8 @@
                "sugar": "A2G",
                "Linkage": [
                   {
-                     "donor_end": 3,
-                     "acceptor_end": 1,
+                     "donor_end": "3",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 1.0,
@@ -28716,8 +28716,8 @@
                "sugar": "GLA",
                "Linkage": [
                   {
-                     "donor_end": 4,
-                     "acceptor_end": 1,
+                     "donor_end": "4",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 1.0,
@@ -28754,8 +28754,8 @@
                "sugar": "NAG",
                "Linkage": [
                   {
-                     "donor_end": 3,
-                     "acceptor_end": 1,
+                     "donor_end": "3",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 1.0,
@@ -28797,8 +28797,8 @@
                "sugar": "FRU",
                "Linkage": [
                   {
-                     "donor_end": 1,
-                     "acceptor_end": 2,
+                     "donor_end": "1",
+                     "acceptor_end": "2",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 2.5,
@@ -28842,8 +28842,8 @@
                "sugar": "GLC",
                "Linkage": [
                   {
-                     "donor_end": 2,
-                     "acceptor_end": 2,
+                     "donor_end": "2",
+                     "acceptor_end": "2",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 1.3333333333333333,
@@ -28934,8 +28934,8 @@
                "sugar": "GLC",
                "Linkage": [
                   {
-                     "donor_end": 4,
-                     "acceptor_end": 1,
+                     "donor_end": "4",
+                     "acceptor_end": "1",
                      "Linkage_data": {
                         "summary": {
                            "count_mean": 1.0,

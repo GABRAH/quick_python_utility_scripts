@@ -1,4 +1,4 @@
-import os
+import os, shutil
 import csv
 import json
 from datetime import date
@@ -103,8 +103,8 @@ def parse_input_filename(filename):
     strings_split_by_dash = sugar_info_only.split("-")
     output["donor"] = strings_split_by_dash[0]
     output["acceptor"] = strings_split_by_dash[3]
-    output["Linkage"]["donor_end"] = int(strings_split_by_dash[2])
-    output["Linkage"]["acceptor_end"] = int(strings_split_by_dash[1])
+    output["Linkage"]["donor_end"] = strings_split_by_dash[2]
+    output["Linkage"]["acceptor_end"] = strings_split_by_dash[1]
 
     return output
 
@@ -223,6 +223,8 @@ def main():
     exportJSON = generate_json_output(binsDirectory)
 
     outputDirectoryPath = os.path.join(scriptDirectory, output_directory)
+    if os.path.exists(outputDirectoryPath):
+        shutil.rmtree(outputDirectoryPath)
     CreateFolder(outputDirectoryPath)
 
     with open(
