@@ -100,12 +100,16 @@ def parse_input_filename(filename):
     }
 
     sugar_info_only = filename.split(".")[0]
-    strings_split_by_dash = sugar_info_only.split("-")
-    output["donor"] = strings_split_by_dash[0]
-    output["acceptor"] = strings_split_by_dash[3]
-    output["Linkage"]["donor_end"] = strings_split_by_dash[2]
-    output["Linkage"]["acceptor_end"] = strings_split_by_dash[1]
+    strings_split_by_comma = sugar_info_only.split(",")
+    acceptor_with_dash = strings_split_by_comma[1]
+    donor_with_dash = strings_split_by_comma[0]
 
+    output["donor"] = donor_with_dash.split("-")[0]
+    output["acceptor"] = acceptor_with_dash.split("-")[1]
+    output["Linkage"]["donor_end"] = acceptor_with_dash.split("-")[0]
+    output["Linkage"]["acceptor_end"] = donor_with_dash.split("-")[1]
+
+    print(f"filename: {filename} \t {output}")
     return output
 
 
@@ -165,7 +169,7 @@ def modify_repeating_linkage(iterator, current_linkage_data):
 
 def generate_json_output(binsDirectory):
     output = {
-        "date_laste_updated": date.today().strftime("%m/%d/%Y"),
+        "date_last_updated": date.today().strftime("%m/%d/%Y"),
         "database_name": "torsions_z_score_database",
         "data": None
     }
